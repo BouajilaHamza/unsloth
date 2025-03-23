@@ -22,6 +22,11 @@ class DynamicTanh(nn.Module):
         return f"normalized_shape={self.normalized_shape}, elementwise_affine={self.elementwise_affine}, alpha_init_value={self.alpha_init_value}"
 
 @triton.jit
+def tanh(x):
+    # Tanh is just a scaled sigmoid
+    return 2 * tl.sigmoid(2 * x) - 1
+
+@triton.jit
 def dynamic_tanh_kernel(
     x_ptr, alpha_ptr, weight_ptr, bias_ptr, y_ptr,
     n_elements: tl.constexpr,

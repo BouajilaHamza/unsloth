@@ -36,7 +36,7 @@ def dynamic_tanh_kernel(
     mask = offsets < n_elements
     x = tl.load(x_ptr + offsets, mask=mask)
     alpha = tl.load(alpha_ptr)
-    y = tl.tanh(alpha * x)
+    y = tanh(alpha * x)  # Changed from tl.tanh to our custom tanh
     if weight_ptr is not None and bias_ptr is not None:
         weight = tl.load(weight_ptr + offsets, mask=mask)
         bias = tl.load(bias_ptr + offsets, mask=mask)

@@ -222,7 +222,7 @@ from .save import *
 from .chat_templates import *
 from .tokenizer_utils import *
 from .trainer import *
-from .test_dynamic_tanh import *
+from . import test_dynamic_tanh
 
 # Patch TRL trainers for backwards compatibility
 _patch_trl_trainer()

@@ -44,13 +44,26 @@ def dynamic_tanh_kernel(
     tl.store(y_ptr + offsets, y, mask=mask)
 
 def dynamic_tanh_forward(x, alpha, weight=None, bias=None):
-    batch_size, seq_len, hidden_dim = x.shape
-    n_elements = batch_size * seq_len * hidden_dim
-    y = torch.empty_like(x)
+    orig_shape = x.shape
+    # Flatten the input
+    x_flat = x.reshape(-1)
+    n_elements = x_flat.numel()
+    y = torch.empty_like(x_flat)
+    
+    # Reshape weight and bias if they exist
+    if weight is not None and bias is not None:
+        weight_flat = weight.expand(orig_shape).reshape(-1)
+        bias_flat = bias.expand(orig_shape).reshape(-1)
+    else:
+        weight_flat = None
+        bias_flat = None
+    
     grid = lambda meta: (triton.cdiv(n_elements, meta['BLOCK_SIZE']),)
     dynamic_tanh_kernel[grid](
-        x, alpha, weight, bias, y,
+        x_flat, alpha, weight_flat, bias_flat, y,
         n_elements=n_elements,
         BLOCK_SIZE=1024,
     )
-    return y
+    
+    # Reshape output back to original shape
+    return y.reshape(orig_shape)
